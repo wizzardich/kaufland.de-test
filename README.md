@@ -110,6 +110,30 @@ minikube addons enable ingress
     that RAM is actually being filled in with a queue of requests of some kind. This means that picking CPU as our primary
     scaling metrics. If we are fine on CPU usage, we will not need more RAM. (I still put in the RAM limits, just in case)
 
+2. Let's add autoscaling!
+
+   ```bash
+   ➜ kubectl autoscale deployment rendertron-deployment --cpu-percent=70 --min=1 --max=10
+   horizontalpodautoscaler.autoscaling/rendertron-deployment autoscaled
+   ➜ kubectl get hpa
+   NAME                    REFERENCE                          TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+   rendertron-deployment   Deployment/rendertron-deployment   0%/70%    1         10        1          51s
+   ```
+
+   With this rendertron is capable of surviving this no problem:
+
+   ```bash
+   ali --duration 2m --rate 4 "http://192.168.49.2/render/https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+
+   ➜ kubectl get hpa                                    
+   NAME                    REFERENCE                          TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
+   rendertron-deployment   Deployment/rendertron-deployment   270%/70%   1         10        10         8m11s
+   ```
+
+   Though it starts choking on 7 requests per second, with the current allowance of CPU usage and pod maximum, anyway.
+
+   It would be much nicer to be able to scale on latency, and for HPA to generally be application-aware, I think.
+
 [rendertron-local]: https://github.com/GoogleChrome/rendertron#running-locally
 [puppeteer]: https://github.com/puppeteer/puppeteer
 [ali-github]: https://github.com/nakabonne/ali
