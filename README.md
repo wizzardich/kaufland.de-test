@@ -62,7 +62,27 @@ minikube addons enable ingress
    ```
 
 3. I add the service and an ingress (based on the one that was enabled earlier). The ingress has a whitelist annotation
-   that allows my docker network to be able to connect to it.
+   that allows my docker network to be able to connect to it. I define a very simple routeless ingress, as I only have one
+   service running in the background.
+
+   I check the ingress:
+
+   ```bash
+   ➜ kubectl get ingress
+   NAME                 CLASS    HOSTS   ADDRESS        PORTS   AGE
+   rendertron-ingress   <none>   *       192.168.49.2   80      10m
+   ```
+
+   And get a peek at the render:
+
+   ```bash
+   [22:31:34] ☸ minikube(default) ../rendertron-test on  main 
+   ➜ curl http://192.168.49.2/render/https://kubernetes.io/docs/concepts/workloads/controllers/deployment/ | head
+   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                   Dload  Upload   Total   Spent    Left  Speed
+   1  347k    1  3882    0     0   3234      0  0:01:50  0:00:01  0:01:49  3235<!DOCTYPE html><html lang="en" class="no-js"><head><base href="https://kubernetes.io/docs/concepts/workloads/controllers">
+   ...
+   ```
 
 [rendertron-local]: https://github.com/GoogleChrome/rendertron#running-locally
 [puppeteer]: https://github.com/puppeteer/puppeteer
