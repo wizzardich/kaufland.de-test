@@ -84,5 +84,32 @@ minikube addons enable ingress
    ...
    ```
 
+## Analysis and autoscaling
+
+1. I use [`ali`][ali-github] to benchmark the performance of the rendertron. Initially I started it with the rate of 100
+   requests per minute, but that start choking on the default resouce allocation almost right away.
+
+    ```bash
+    ali --duration 2m --rate 100 "http://192.168.49.2/render/https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    ```
+
+    I decided to test it on a low-frequency render; 1 req/sec it can keep up with. In this case with the allocation of
+    1 CPU unit it is capable to preserve around 1.6 sec latency, while not overusing the RAM.
+
+    ```bash
+    ali --duration 2m --rate 1 "http://192.168.49.2/render/https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    ```
+
+    I started a slightly more difficult benchmark with 2 requests per minute.
+
+    ```bash
+    ali --duration 2m --rate 2 "http://192.168.49.2/render/https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    ```
+
+    I'm treated to a glorious picture of rendertron choking. First CPU hits the roof, and RAM shortly follows. I guess
+    that RAM is actually being filled in with a queue of requests of some kind. This means that picking CPU as our primary
+    scaling metrics. If we are fine on CPU usage, we will not need more RAM. (I still put in the RAM limits, just in case)
+
 [rendertron-local]: https://github.com/GoogleChrome/rendertron#running-locally
 [puppeteer]: https://github.com/puppeteer/puppeteer
+[ali-github]: https://github.com/nakabonne/ali
